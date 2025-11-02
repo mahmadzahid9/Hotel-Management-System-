@@ -1,0 +1,11 @@
+Name	Room_ID	No_f_Person	Room_Type	Balance	Days_f_Stay
+John	101	2	Deluxe	5000	3
+Jane	102	1	Standard	3000	2
+Robert	103	3	Suite	10000	5
+Emily	104	2	Standard	4000	4
+Michael	105	1	Deluxe	6000	3
+Jessica	106	2	Suite	12000	6
+David	107	4	Family	8000	7
+Sarah	108	1	Standard	3500	2
+James	109	2	Deluxe	5500	4
+Laura	110	3	Suite	11000	5
