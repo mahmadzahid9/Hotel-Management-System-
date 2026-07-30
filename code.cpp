@@ -1,8 +1,164 @@
 # include <iostream>
 # include <fstream>
 # include <cstring>
+# include <cctype>
 # include <iomanip>
 using namespace std;
+
+// ---------- ASCII box-border helpers for a nicer console UI ----------
+const int BOX_WIDTH = 74;
+
+string h_line(char fill)
+{
+	string s="+";
+	s+=string(BOX_WIDTH,fill);
+	s+="+";
+	return s;
+}
+
+void print_center(string text)
+{
+	int pad=BOX_WIDTH-(int)text.length();
+	if (pad<0)
+	{
+		pad=0;
+	}
+	int left_pad=pad/2;
+	int right_pad=pad-left_pad;
+	cout<<"|"<<string(left_pad,' ')<<text<<string(right_pad,' ')<<"|"<<endl;
+}
+
+void print_left(string text)
+{
+	cout<<"| "<<left<<setw(BOX_WIDTH-1)<<text<<"|"<<endl;
+}
+
+void print_banner()
+{
+	cout<<h_line('=')<<endl;
+	print_center("WELCOME TO FAST NUCES HOTEL");
+	cout<<h_line('=')<<endl;
+}
+
+void print_header(string title)
+{
+	cout<<endl<<h_line('-')<<endl;
+	print_left(title);
+	cout<<h_line('-')<<endl;
+}
+
+string guest_table_border()
+{
+	int widths[]={10,15,15,18,15,35};
+	string s="+";
+	for (int i=0;i<6;i++)
+	{
+		s+=string(widths[i],'-');
+		s+="+";
+	}
+	return s;
+}
+
+string room_table_border()
+{
+	int widths[]={10,10,10,10};
+	string s="+";
+	for (int i=0;i<4;i++)
+	{
+		s+=string(widths[i],'-');
+		s+="+";
+	}
+	return s;
+}
+
+// ---------- validated input helpers (added for input validation) ----------
+int read_int_in_range(string prompt,int minv,int maxv)
+{
+	int value;
+	while (true)
+	{
+		cout<<prompt;
+		cin>>value;
+		if (cin.fail() || value<minv || value>maxv)
+		{
+			cin.clear();
+			cin.ignore(10000,'\n');
+			cout<<"[ERROR] Invalid input, please enter a whole number between "<<minv<<" and "<<maxv<<endl;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return value;
+}
+
+double read_double_min(string prompt,double minv)
+{
+	double value;
+	while (true)
+	{
+		cout<<prompt;
+		cin>>value;
+		if (cin.fail() || value<minv)
+		{
+			cin.clear();
+			cin.ignore(10000,'\n');
+			cout<<"[ERROR] Invalid input, please enter a number of at least "<<minv<<endl;
+		}
+		else
+		{
+			break;
+		}
+	}
+	return value;
+}
+
+string read_valid_name(string prompt)
+{
+	string value;
+	while (true)
+	{
+		cout<<prompt;
+		cin>>value;
+		bool valid=true;
+		for (int i=0;i<(int)value.length();i++)
+		{
+			if (!isalpha((unsigned char)value[i]))
+			{
+				valid=false;
+				break;
+			}
+		}
+		if (valid && value.length()>0)
+		{
+			break;
+		}
+		cout<<"[ERROR] Invalid name, please use letters only"<<endl;
+	}
+	return value;
+}
+
+string read_valid_room_type(string prompt)
+{
+	string value;
+	while (true)
+	{
+		cout<<prompt;
+		cin>>value;
+		for (int i=0;i<(int)value.length();i++)
+		{
+			value[i]=tolower(value[i]);
+		}
+		if (value=="deluxe" || value=="standard" || value=="suite" || value=="family")
+		{
+			value[0]=toupper(value[0]);
+			break;
+		}
+		cout<<"[ERROR] Invalid room type, choose from Deluxe, Standard, Suite, Family"<<endl;
+	}
+	return value;
+}
 
 class guest 
 {
@@ -60,14 +216,14 @@ class guest
 	{
 		return days_stay;
 	}
-	int get_balance()
+	double get_balance()
 	{
 		return balance;
 	}
     
 	void show_guests()
 {
-	cout<<endl<<left<<setw(10)<<name<<setw(15)<<room_id<<setw(15)<<number_ppl<<setw(18)<<room_type<<setw(15)<<balance<<setw(35)<<days_stay;
+	cout<<"|"<<left<<setw(10)<<name<<"|"<<setw(15)<<room_id<<"|"<<setw(15)<<number_ppl<<"|"<<setw(18)<<room_type<<"|"<<setw(15)<<balance<<"|"<<setw(35)<<days_stay<<"|"<<endl;
 }
 
 void add_new_guest() 
@@ -132,8 +288,7 @@ void add_new_guest()
 			
 	void show_room()
 	{
-		cout<<left<<setw(10)<<room_id<<setw(10)<<room_type<<setw(10)<<cost_day<<setw(10)<<status;
-		cout<<endl;
+		cout<<"|"<<left<<setw(10)<<room_id<<"|"<<setw(10)<<room_type<<"|"<<setw(10)<<cost_day<<"|"<<setw(10)<<status<<"|"<<endl;
 	}
 
 };
@@ -154,7 +309,7 @@ void view_feedback()
 	ifstream fin("feedback.txt");
 	if (!fin)
 	{
-		cout<<"File not found";
+		cout<<"[ERROR] File not found";
 	}
 	char ch;
 	while (fin.get(ch))
@@ -185,7 +340,7 @@ int main ()
     getline(fin, header);              // clearing the heading
 	if (!fin)
 	{
-    	cout<<"Error Error file not found";
+    	cout<<"[ERROR] Error file not found";
 	}
 	while (fin>>name>>room_id>>number_ppl>>room_type>>balance>>days_stay)
 	{
@@ -205,7 +360,7 @@ int main ()
     getline(file, header2);              // clearing the heading
 	if (!file)
 	{
-    	cout<<"Error Error file not found";
+    	cout<<"[ERROR] Error file not found";
 	}
 	while (file>>room_id2>>room_type2>>cost_day>>status)
 	{
@@ -217,88 +372,85 @@ int main ()
 	}
 		file.close();	
 		
-	cout<<"                                        Welcome to Fast Nuces Hotel\n\n";
-	cout<<"Please select one of the following options\n1- Login as Employee\n2- Login as Guest\n";
-	cin>>choice;
-	while (true)
-	{
-			if (choice==1 || choice==2)
-		{
-			break;
-		}
-		
-		else if (choice!=1 || choice!=2)
-		{
-			cout<<"Sorry wrong option please try again\n\n";
-			cout<<"Please select one of the following options\n1- Login as Employee\n2- Login as Guest\n";
-			cin>>choice;
-		}
-	}
+	print_banner();
+	print_header("MAIN MENU");
+	print_left(" 1. Login as Employee");
+	print_left(" 2. Login as Guest");
+	cout<<h_line('-')<<endl;
+	choice=read_int_in_range("Enter your choice: ",1,2);
 	
-	int id3,password3;
-	for (int i=3;i>0;i--)
+	int id3=0,password3=0;
+	bool logged_in=false;
+	if (choice==1)
 	{
-		if (choice==1)
+	for (int i=3;i>0 && !logged_in;i--)
 	{
 		cout<<endl;
-		cout<<"Please enter your id: ";
-		cin>>id3;
-		cout<<"Please enter your password: ";
-		cin>>password3;
+		id3=read_int_in_range("Please enter your id: ",0,999999);
+		password3=read_int_in_range("Please enter your password: ",0,999999);
 		cout<<endl;
     
     if ((id1==id3 || id2==id3) && (password1==password3 || password2==password3))
     {
+    	logged_in=true;
     	break;
 	}
-    else if ((id1!=id3 && id1!=id2) && (password1!=password3 && password2!=password3))
+    else
     {
     	if (i==1)
     	{
-    		cout<<"You are out of tries";
+    		cout<<"[ERROR] You are out of tries"<<endl;
     		return 0;
 		}
 		else
-    	cout<<"Wrong Please try again, You have "<<i-1<<" tries left";
+    	cout<<"[ERROR] Wrong Please try again, You have "<<i-1<<" tries left"<<endl;
 	}
-	}
+    }
     }
 	
 	if (choice==1)
 	{
-		while (true)	
+		while (logged_in)	
 	{
-		if ((id1==id3 || id2==id3) && (password1==password3 || password2==password3))
-		{
 			int second_option;
 			cout<<endl;
-			cout<<"Please select one option\n1-View all guests\n2-View all rooms\n3-View feedback\n4-Exit\n";
-			cin>>second_option;
+			print_header("EMPLOYEE MENU");
+			print_left(" 1. View all guests");
+			print_left(" 2. View all rooms");
+			print_left(" 3. View feedback");
+			print_left(" 4. Exit");
+			cout<<h_line('-')<<endl;
+			second_option=read_int_in_range("Enter your choice: ",1,4);
 			if (second_option==1)
 			{
 				cout<<endl;
-				cout<<left<<setw(10)<<"Name"<<setw(15)<<"Room_ID"<<setw(15)<<"No of Persons"<<setw(18)
-                <<"Room Type"<<setw(15)<<"Balance"<<setw(35)<<"Days of Stay"<<endl;
-                cout<<"------------------------------------------------------------------------------------------------------------------------";
+				cout<<guest_table_border()<<endl;
+				cout<<"|"<<left<<setw(10)<<"Name"<<"|"<<setw(15)<<"Room_ID"<<"|"<<setw(15)<<"No of Persons"<<"|"<<setw(18)
+                <<"Room Type"<<"|"<<setw(15)<<"Balance"<<"|"<<setw(35)<<"Days of Stay"<<"|"<<endl;
+                cout<<guest_table_border()<<endl;
 			   for (int i=0;i<counter;i++)
 			   {
 			   	g[i].show_guests();
 			   }
+			   cout<<guest_table_border()<<endl;
 			}
 		    else if (second_option==2)
 			{
 				 cout<<endl;
-				 cout<<left<<setw(10)<<"Room ID"<<setw(10)<<"Type"<<setw(10)<<"Cost"<<setw(10)<<"Status"<< endl;
-				 cout<<"------------------------------------------------------------------------------------------------------------------------";
+				 cout<<room_table_border()<<endl;
+				 cout<<"|"<<left<<setw(10)<<"Room ID"<<"|"<<setw(10)<<"Type"<<"|"<<setw(10)<<"Cost"<<"|"<<setw(10)<<"Status"<<"|"<<endl;
+				 cout<<room_table_border()<<endl;
 				for (int i=0;i<counter1;i++)
 				{
 					r[i].show_room();
 					
 				}
+				cout<<room_table_border()<<endl;
 			}
 			else if (second_option==3)
 			{
 				cout<<endl;
+				print_header("GUEST FEEDBACK");
 				view_feedback();
 				cout<<endl;
 			}
@@ -308,11 +460,6 @@ int main ()
 				cout<<"Exiting.....\n";
 				break;
 			}
-			else if (second_option>4 || second_option<0)
-			{
-				cout<<"Please try again\n";
-			}
-		}
 	}
 }
 		
@@ -320,39 +467,22 @@ int main ()
 		{
 			int guest_choice;
 			cout<<endl;
-			cout<<"Hey welcome Please select one of the following options\n";
-			cout<<"1-Check in\n2-Check out\n";
-			cin>>guest_choice;
-			
-			while (true)
-	        {
-			if (guest_choice==1 || guest_choice==2)
-		{
-			break;
-		}
-		   else if (guest_choice!=1 && guest_choice!=2)
-		{
-			cout<<"Sorry wrong option please try again\n\n";
-			cout<<"Please select one of the following options\n1-Check in\n2-Check out\n";
-			cin>>guest_choice;
-		}
-	        }
+			print_header("GUEST MENU");
+			print_left(" 1. Check in");
+			print_left(" 2. Check out");
+			cout<<h_line('-')<<endl;
+			guest_choice=read_int_in_range("Enter your choice: ",1,2);
 			
 			if (guest_choice==1)
 			{
 				int room_cost=0;
 				cout<<endl;
-				cout<<"Please enter the following information\n";
-    	        cout<<"Enter your name please: ";
-    	        cin>>name;
-             	cout<<"Enter the type of room you want i.e (Deluxe,Standard,Suite,Family): ";
-            	cin>>room_type;
-    	        cout<<"Please enter number of persons for stay: ";
-    	        cin>>number_ppl;
-    	        cout<<"Enter number of days of your stay: ";
-    	        cin>>days_stay;
-    	        cout<<"Lastly please enter your bank balance: ";
-    	        cin>>balance;
+				print_header("PLEASE ENTER THE FOLLOWING INFORMATION");
+    	        name=read_valid_name("Enter your name please: ");
+             	room_type=read_valid_room_type("Enter the type of room you want i.e (Deluxe,Standard,Suite,Family): ");
+    	        number_ppl=read_int_in_range("Please enter number of persons for stay: ",1,10);
+    	        days_stay=read_int_in_range("Enter number of days of your stay: ",1,365);
+    	        balance=read_double_min("Lastly please enter your bank balance: ",0);
     	        
     	bool room_allocated=false;
         int position=-1;
@@ -386,18 +516,18 @@ int main ()
                 counter++;
                 
 
-                cout <<"A room has been allocated to you successfully\nYour Room ID is: "<<r[position].get_room_id()<<endl;
+                cout<<"[OK] A room has been allocated to you successfully\nYour Room ID is: "<<r[position].get_room_id()<<endl;
                 room_allocated=true;	
                 
 		    }
 	    	else 
 		{
-        cout << "Sorry but your bank balance is insufficient. Hope to see you soon :/\n";
+        cout<<"[ERROR] Sorry but your bank balance is insufficient. Hope to see you soon :/\n";
         }
         }
 		 else 
 		{
-            cout << "Sorry no room of your desire is currently available\n";
+            cout<<"[ERROR] Sorry no room of your desire is currently available\n";
         }
         }
         if (guest_choice==2)
@@ -406,8 +536,7 @@ int main ()
         	string feedback;
         	bool find=false;
         	cout<<endl;
-        	cout<<"Please provide your room id: ";
-            cin>>id;
+        	id=read_int_in_range("Please provide your room id: ",1,999999);
 			
 			for (int i=0;i<counter;i++)
 			{
@@ -417,6 +546,11 @@ int main ()
         		cout<<"Please provide your valuable feedback as it helps us to improve\n";
         	cin.ignore();
         	getline(cin, feedback);
+        	while (feedback.length()==0)
+        	{
+        		cout<<"[ERROR] Feedback cannot be empty, please try again: ";
+        		getline(cin, feedback);
+        	}
         	
         	ofstream fout("feedback.txt",ios ::app);
         	fout<<endl<<left<<setw(10)<<g[i].get_name()<<setw(10)<<feedback;
@@ -446,9 +580,13 @@ int main ()
             }
             change_status(r,counter1);
 
-            cout << "You have successfully checked out. Thank you for staying with us!\n";
+            cout<<"[OK] You have successfully checked out. Thank you for staying with us!\n";
             break;
 			}
+			}
+			if (!find)
+			{
+				cout<<"[ERROR] Sorry, we could not find a booking with that room id\n";
 			}
 			}		
 		if (guest_choice==2)
